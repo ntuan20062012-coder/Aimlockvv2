@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Aimlock Pro</title>
+<style>
+  :root {
+    --bg: #121212; --card: #1c1c1e; --text: #ffffff; --sub: #8e8e93;
+    --accent: #7878ff; --line: #2c2c2e; --btn-off: #333333;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); height: 100vh; height: -webkit-fill-available; overflow: hidden; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
+  
+  /* HEADER */
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; }
+  .h-left { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #7c4dff, #448aff); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+  .h-title { font-size: 16px; font-weight: 600; }
+  .h-sub { font-size: 12px; color: var(--sub); margin-top: 2px; }
+  .h-right { text-align: right; font-size: 12px; }
+  .status-live { color: #32d74b; display: flex; align-items: center; gap: 4px; justify-content: flex-end; font-weight: 500; }
+  .status-live::before { content: ''; width: 6px; height: 6px; background: #32d74b; border-radius: 50%; }
+  .status-count { color: var(--sub); margin-top: 4px; }
+
+  /* NAV TABS */
+  .nav-tabs { display: flex; padding: 0 20px; border-bottom: 1px solid var(--line); gap: 24px; overflow-x: auto; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 12px 0; font-size: 14px; font-weight: 500; color: var(--sub); cursor: pointer; position: relative; white-space: nowrap; }
+  .tab.active { color: #a6a6ff; }
+  .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--accent); border-radius: 2px; }
+
+  /* CONTENT */
+  .content { flex: 1; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; padding-bottom: 100px; }
+  .tab-content { display: none; animation: fadeIn 0.2s ease-in-out; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title { font-size: 12px; font-weight: 600; color: var(--sub); text-transform: uppercase; display: flex; justify-content: space-between; margin-bottom: 10px; margin-top: 10px; letter-spacing: 0.5px; }
+
+  .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+  .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .row:last-child { margin-bottom: 0; }
+  .row-info { display: flex; flex-direction: column; gap: 4px; }
+  .row-title { font-size: 15px; font-weight: 500; }
+  .row-sub { font-size: 12px; color: var(--sub); }
+  
+  /* SLIDER */
+  .slider-group { margin-bottom: 20px; }
+  .slider-header { display: flex; justify-content: space-between; font-size: 15px; font-weight: 500; margin-bottom: 16px; }
+  input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+  input[type=range]:focus { outline: none; }
+  input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #333; border-radius: 2px; }
+  input[type=range]::-webkit-slider-thumb { height: 20px; width: 20px; border-radius: 50%; background: #fff; cursor: pointer; -webkit-appearance: none; margin-top: -8px; }
+
+  /* TOGGLE SWITCH */
+  .sw { width: 50px; height: 28px; background: var(--btn-off); border-radius: 14px; position: relative; cursor: pointer; transition: .2s; flex-shrink: 0; }
+  .sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+  .sw.on { background: var(--accent); }
+  .sw.on::after { left: 24px; }
+
+  /* SEGMENT CONTROL (GHIM) */
+  .segment-container { margin-bottom: 16px; }
+  .segment-title { font-size: 15px; font-weight: 500; margin-bottom: 12px; }
+  .segment { display: flex; background: #2c2c2e; border-radius: 8px; padding: 2px; }
+  .seg-item { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; font-weight: 500; color: var(--sub); border-radius: 6px; cursor: pointer; transition: .2s; }
+  .seg-item.active { background: #48484a; color: #fff; }
+
+  /* FOOTER */
+  .footer { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--line); background: var(--bg); padding-bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 100; }
+  .btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 600; text-align: center; border: none; }
+  .btn-reset { background: #2c2c2e; color: #fff; cursor: pointer; }
+  .btn-sync { background: #2c2c2e; color: var(--sub); cursor: default; }
+
+  /* VÒNG TRÒN FOV (HIỂN THỊ GIỮA MÀN HÌNH) */
+  #fov-circle {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 250px;
+    height: 250px;
+    border: 2px solid rgba(120, 120, 255, 0.7);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 0 15px rgba(120, 120, 255, 0.2) inset;
+  }
+  /* Tâm điểm ở giữa vòng tròn */
+  #fov-circle::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 4px; height: 4px;
+    background: #7878ff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+</style>
+</head>
+<body>
+
+<!-- VÒNG TRÒN FOV -->
+<div id="fov-circle"></div>
+
+<div class="header">
+  <div class="h-left">
+    <div class="avatar">tb</div>
+    <div>
+      <div class="h-title">haap xtoibivosinh</div>
+      <div class="h-sub">FF Menu · Pro Max</div>
+    </div>
+  </div>
+  <div class="h-right">
+    <div class="status-live">Live</div>
+    <div class="status-count" id="active-count">0 đang bật</div>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <div class="tab active" data-t="aim">Aim</div>
+  <div class="tab" data-t="esp">ESP</div>
+  <div class="tab" data-t="weapon">Vũ khí</div>
+  <div class="tab" data-t="system">Hệ thống</div>
+</div>
+
+<div class="content">
+  <!-- ================= TAB AIM ================= -->
+  <div class="tab-content active" id="t-aim">
+    <div class="section-title"><span>Aim assist</span><span>1/6</span></div>
+
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Silent Aim</div>
+          <div class="row-sub">Bẻ hướng camera</div>
+        </div>
+        <div class="sw on" data-key="silent_aim"></div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header"><span>Headshot rate</span><span id="val-hs">70%</span></div>
+        <input type="range" id="r-hs" min="0" max="100" value="70">
+      </div>
+
+      <div class="slider-group" style="margin-bottom: 0;">
+        <div class="slider-header"><span>Silent radius</span><span id="val-radius">220m</span></div>
+        <input type="range" id="r-radius" min="10" max="500" value="220">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Aimbot</div>
+          <div class="row-sub">Tự động khóa mục tiêu khi bắn</div>
+        </div>
+        <div class="sw" data-key="aimbot"></div>
+      </div>
+      
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Chống rung tâm</div>
+          <div class="row-sub">Khóa vi chuyển động</div>
+        </div>
+        <div class="sw" data-key="anti_shake"></div>
+      </div>
+
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Aimlegit</div>
+          <div class="row-sub">Camera bám mượt, không snap</div>
+        </div>
+        <div class="sw" data-key="aimlegit"></div>
+      </div>
+    </div>
+
+    <div class="segment-container">
+      <div class="segment-title">Ghim mục tiêu</div>
+      <div class="segment" id="seg-ghim">
+        <div class="seg-item">Thân</div>
+        <div class="seg-item">Cổ</div>
+        <div class="seg-item active">Đầu</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB ESP ================= -->
+  <div class="tab-content" id="t-esp">
+    <div class="section-title"><span>Hiển thị FOV</span></div>
+
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Bật Vòng Tròn</div>
+          <div class="row-sub">Hiện ở giữa màn hình</div>
+        </div>
+        <div class="sw" data-key="fov_on"></div>
+      </div>
+      
+      <div class="slider-group" style="margin-top: 16px; margin-bottom: 0;">
+        <div class="slider-header"><span>Kích thước vòng tròn</span><span id="val-fov">250px</span></div>
+        <input type="range" id="r-fov-size" min="50" max="600" value="250">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">ESP Khung (Box)</div>
+        </div>
+        <div class="sw" data-key="esp_box"></div>
+      </div>
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">ESP Tên</div>
+        </div>
+        <div class="sw" data-key="esp_name"></div>
+      </div>
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">ESP Máu</div>
+        </div>
+        <div class="sw" data-key="esp_hp"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB VŨ KHÍ ================= -->
+  <div class="tab-content" id="t-weapon">
+    <div class="section-title"><span>Tối ưu súng</span></div>
+
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Thay đạn nhanh</div>
+          <div class="row-sub">Bỏ qua animation nạp</div>
+        </div>
+        <div class="sw" data-key="fast_reload"></div>
+      </div>
+
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Đổi súng nhanh</div>
+          <div class="row-sub">Hủy delay đổi vũ khí</div>
+        </div>
+        <div class="sw" data-key="fast_swap"></div>
+      </div>
+
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Đạn thẳng (Magic Bullet)</div>
+          <div class="row-sub">Triệt tiêu rơi đạn</div>
+        </div>
+        <div class="sw" data-key="straight_bullet"></div>
+      </div>
+      
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Norecoil (Không giật)</div>
+          <div class="row-sub">Bù giật tâm súng</div>
+        </div>
+        <div class="sw" data-key="norecoil"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB HỆ THỐNG ================= -->
+  <div class="tab-content" id="t-system">
+    <div class="section-title"><span>Cấu hình</span></div>
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Lưu Cấu Hình</div>
+          <div class="row-sub">Tự động lưu vào máy</div>
+        </div>
+        <div class="sw on" data-key="save_cfg"></div>
+      </div>
+      <div class="row">
+        <div class="row-info">
+          <div class="row-title">Chạy ngầm</div>
+          <div class="row-sub">Ẩn app khi vào game</div>
+        </div>
+        <div class="sw" data-key="run_bg"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <button class="btn btn-reset" id="btn-reset">Đặt lại</button>
+  <button class="btn btn-sync">Đã đồng bộ</button>
+</div>
+
+<script>
+  // --- CHUYỂN TAB ---
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('t-' + tab.dataset.t).classList.add('active');
+    });
+  });
+
+  // --- TOGGLE SWITCH ---
+  document.querySelectorAll('.sw').forEach(sw => {
+    sw.addEventListener('click', () => {
+      sw.classList.toggle('on');
+      updateCount();
+      saveConfig();
+    });
+  });
+
+  // --- SLIDER HEADSHOT ---
+  const rHs = document.getElementById('r-hs');
+  const valHs = document.getElementById('val-hs');
+  rHs.addEventListener('input', (e) => {
+    valHs.textContent = e.target.value + '%';
+    saveConfig();
+  });
+
+  // --- SLIDER RADIUS ---
+  const rRad = document.getElementById('r-radius');
+  const valRad = document.getElementById('val-radius');
+  rRad.addEventListener('input', (e) => {
+    valRad.textContent = e.target.value + 'm';
+    saveConfig();
+  });
+
+  // --- VÒNG TRÒN FOV ---
+  const swFov = document.querySelector('[data-key="fov_on"]');
+  const rFovSize = document.getElementById('r-fov-size');
+  const valFov = document.getElementById('val-fov');
+  const fovCircle = document.getElementById('fov-circle');
+
+  function updateFov() {
+    const isOn = swFov.classList.contains('on');
+    const size = rFovSize.value;
+    
+    if (isOn) {
+      fovCircle.style.display = 'block';
+    } else {
+      fovCircle.style.display = 'none';
+    }
+    fovCircle.style.width = size + 'px';
+    fovCircle.style.height = size + 'px';
+    valFov.textContent = size + 'px';
+  }
+
+  swFov.addEventListener('click', () => {
+    updateFov();
+    saveConfig();
+  });
+
+  rFovSize.addEventListener('input', () => {
+    updateFov();
+    saveConfig();
+  });
+
+  // --- SEGMENT GHIM ---
+  document.querySelectorAll('#seg-ghim .seg-item').forEach(seg => {
+    seg.addEventListener('click', () => {
+      document.querySelectorAll('#seg-ghim .seg-item').forEach(s => s.classList.remove('active'));
+      seg.classList.add('active');
+      saveConfig();
+    });
+  });
+
+  // --- ĐẾM SỐ LƯỢNG BẬT ---
+  function updateCount() {
+    const active = document.querySelectorAll('.sw.on').length;
+    document.getElementById('active-count').textContent = active + ' đang bật';
+  }
+  updateCount();
+
+  // --- LƯU / ĐỌC CẤU HÌNH (LocalStorage) ---
+  function saveConfig() {
+    if (!document.querySelector('[data-key="save_cfg"]').classList.contains('on')) return;
+    
+    const data = {};
+    document.querySelectorAll('.sw').forEach(sw => {
+      data[sw.dataset.key] = sw.classList.contains('on');
+    });
+    data.hs_rate = rHs.value;
+    data.radius = rRad.value;
+    data.fov_size = rFovSize.value;
+    data.ghim = document.querySelector('#seg-ghim .seg-item.active').textContent;
+
+    localStorage.setItem('aimlock_pro_cfg', JSON.stringify(data));
+  }
+
+  function loadConfig() {
+    const saved = localStorage.getItem('aimlock_pro_cfg');
+    if (!saved) {
+      updateFov();
+      return;
+    }
+    try {
+      const data = JSON.parse(saved);
+      document.querySelectorAll('.sw').forEach(sw => {
+        if (data[sw.dataset.key] !== undefined) {
+          if (data[sw.dataset.key]) sw.classList.add('on');
+          else sw.classList.remove('on');
+        }
+      });
+      if (data.hs_rate) { rHs.value = data.hs_rate; valHs.textContent = data.hs_rate + '%'; }
+      if (data.radius) { rRad.value = data.radius; valRad.textContent = data.radius + 'm'; }
+      if (data.fov_size) { rFovSize.value = data.fov_size; }
+      if (data.ghim) {
+        document.querySelectorAll('#seg-ghim .seg-item').forEach(s => {
+          s.classList.toggle('active', s.textContent === data.ghim);
+        });
+      }
+      updateFov();
+      updateCount();
+    } catch (e) {}
+  }
+
+  // --- RESET ---
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if (!confirm("Xóa toàn bộ cấu hình và đưa về mặc định?")) return;
+    
+    document.querySelectorAll('.sw').forEach(s => s.classList.remove('on'));
+    document.querySelector('[data-key="silent_aim"]').classList.add('on');
+    document.querySelector('[data-key="save_cfg"]').classList.add('on');
+    
+    rHs.value = 70; valHs.textContent = '70%';
+    rRad.value = 220; valRad.textContent = '220m';
+    rFovSize.value = 250;
+    
+    document.querySelectorAll('#seg-ghim .seg-item').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('#seg-ghim .seg-item')[2].classList.add('active');
+    
+    updateFov();
+    updateCount();
+    saveConfig();
+  });
+
+  // --- KHỞI TẠO ---
+  loadConfig();
+</script>
+</body>
+</html>
